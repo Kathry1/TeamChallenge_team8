@@ -240,7 +240,7 @@ def get_features_cat_regression(dataframe, target_col, pvalue=0.05):
 
 
 def plot_features_cat_regression(dataframe, target_col, columns=None, pvalue=0.05, with_individual_plot=False):
-    """
+
     # Genera gráficos de histogramas agrupados para analizar la relación entre variables categóricas y una columna objetivo numérica.
 
     # Argumentos:
@@ -252,7 +252,7 @@ def plot_features_cat_regression(dataframe, target_col, columns=None, pvalue=0.0
 
     # Retorna:
     # list: Lista de columnas que cumplen con los criterios y fueron incluidas en los gráficos.
-    """
+
     # Validación de entrada
     if target_col not in dataframe.columns:
         print(f"Error: La columna objetivo '{
