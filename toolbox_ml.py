@@ -69,23 +69,22 @@ def tipifica_variables(dataframe, umbral_categoria, umbral_continua):
 
     return pd.DataFrame(resultados)
 
-# Definir la función
 
-
+# Definir la función GET FEATURES NUM REGRESSION
 def get_features_num_regression(dataframe, target_col, umbral_corr, pvalue=None):
-    """
-    Filtra columnas numéricas de un DataFrame basándose en su correlación con una columna objetivo y un p-valor opcional.
 
-    Argumentos:
-    dataframe (pd.DataFrame): DataFrame de entrada.
-    target_col (str): Nombre de la columna objetivo (debe ser numérica continua o discreta con alta cardinalidad).
-    umbral_corr (float): Umbral de correlación (entre 0 y 1).
-    pvalue (float, opcional): Valor de p para filtrar columnas basadas en significancia estadística.
+    # Filtra columnas numéricas de un DataFrame basándose en su correlación con una columna objetivo y un p-valor opcional.
 
-    Retorna:
-    list: Lista de columnas numéricas que cumplen con los criterios.
-    None: Si hay un error en los argumentos de entrada.
-    """
+    # Argumentos:
+    # dataframe (pd.DataFrame): DataFrame de entrada.
+    # target_col (str): Nombre de la columna objetivo (debe ser numérica continua o discreta con alta cardinalidad).
+    # umbral_corr (float): Umbral de correlación (entre 0 y 1).
+    # pvalue (float, opcional): Valor de p para filtrar columnas basadas en significancia estadística.
+
+    # Retorna:
+    # list: Lista de columnas numéricas que cumplen con los criterios.
+    # None: Si hay un error en los argumentos de entrada.
+
     # Validación de entrada
     if target_col not in dataframe.columns:
         print(f"Error: La columna objetivo '{
@@ -119,6 +118,23 @@ def get_features_num_regression(dataframe, target_col, umbral_corr, pvalue=None)
                 resultado.append(col)
 
     return resultado
+
+
+# Cargar el dataset
+df = pd.read_csv(
+    '/kaggle/input/sleep-health-and-lifestyle-dataset/Sleep_health_and_lifestyle_dataset.csv')
+
+# Definir la columna objetivo y los parámetros
+target_col = 'Sleep Duration'
+umbral_corr = 0.3
+pvalue = 0.05
+
+# Aplicar la función
+columnas_significativas = get_features_num_regression(
+    df, target_col, umbral_corr, pvalue)
+
+# Mostrar el resultado
+print("Columnas significativas:", columnas_significativas)
 
 
 # Cargar el dataset
