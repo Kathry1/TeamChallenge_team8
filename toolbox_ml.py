@@ -33,25 +33,25 @@ def describe_df(dataframe):
 
 
 def tipifica_variables(dataframe, umbral_categoria, umbral_continua):
-    """
-    Clasifica las variables de un DataFrame en función de su cardinalidad y otros criterios.
-    Devuelve un DataFrame con dos columnas: "nombre_variable" y "tipo_sugerido".
 
-    Criterios:
-    - Si la cardinalidad es 2, asigna "Binaria".
-    - Si la cardinalidad es menor que umbral_categoria, asigna "Categorica".
-    - Si la cardinalidad es mayor o igual que umbral_categoria:
-      * Si el porcentaje de cardinalidad es mayor o igual a umbral_continua, asigna "Numerica Continua".
-      * En caso contrario, asigna "Numerica Discreta".
+    # Clasifica las variables de un DataFrame en función de su cardinalidad y otros criterios.
+    # Devuelve un DataFrame con dos columnas: "nombre_variable" y "tipo_sugerido".
 
-    Argumentos:
-    dataframe (pd.DataFrame): DataFrame de entrada.
-    umbral_categoria (int): Umbral para determinar variables categoricas.
-    umbral_continua (float): Umbral para determinar variables continuas.
+    # Criterios:
+    # - Si la cardinalidad es 2, asigna "Binaria".
+    # - Si la cardinalidad es menor que umbral_categoria, asigna "Categorica".
+    # - Si la cardinalidad es mayor o igual que umbral_categoria:
+    # - Si el porcentaje de cardinalidad es mayor o igual a umbral_continua, asigna "Numerica Continua".
+    # - En caso contrario, asigna "Numerica Discreta".
 
-    Retorna:
-    pd.DataFrame: DataFrame con "nombre_variable" y "tipo_sugerido".
-    """
+    # Argumentos:
+    # dataframe (pd.DataFrame): DataFrame de entrada.
+    # umbral_categoria (int): Umbral para determinar variables categoricas.
+    # umbral_continua (float): Umbral para determinar variables continuas.
+
+    # Retorna:
+    # pd.DataFrame: DataFrame con "nombre_variable" y "tipo_sugerido".
+
     resultados = []
     for columna in dataframe.columns:
         cardinalidad = dataframe[columna].nunique()
