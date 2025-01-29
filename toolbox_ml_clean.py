@@ -1,3 +1,10 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from scipy.stats import chi2_contingency, f_oneway, pearsonr
+
+
+#1. describe df
 def describe_df(dataframe):
     """
     Genera un resumen del DataFrame proporcionado. Devuelve un DataFrame con información sobre:
@@ -25,7 +32,7 @@ def describe_df(dataframe):
 
     return summary_df
 
-
+#2. tipifica variables
 def tipifica_variables(dataframe, umbral_categoria, umbral_continua):
 
     # Clasifica las variables de un DataFrame en función de su cardinalidad y otros criterios.
