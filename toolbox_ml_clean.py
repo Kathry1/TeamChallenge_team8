@@ -73,6 +73,61 @@ def tipifica_variables(dataframe, umbral_categoria, umbral_continua):
 
 
 # 3.GET FEATURES NUM REGRESSION
+def get_features_num_regression(dataframe, target_col, columns=None, umbral_corr=0, pvalue=None):
+
+    # Genera pairplots para analizar la correlación entre una columna objetivo y otras columnas numéricas.
+
+    # Argumentos:
+    # dataframe (pd.DataFrame): DataFrame de entrada.
+    # target_col (str): Columna objetivo para analizar la correlación.
+    # columns (list, opcional): Lista de columnas para incluir en el análisis. Si es None, se seleccionan todas las numéricas.
+    # umbral_corr (float, opcional): Umbral de correlación mínima (default = 0).
+    # pvalue (float, opcional): Umbral de significancia estadística (default = None).
+
+    # Retorna:
+    # list: Lista de columnas que cumplen con los criterios y fueron incluidas en el gráfico.
+
+    # Validación de entrada
+    if target_col not in dataframe.columns:
+        print(f"Error: La columna objetivo '{
+            target_col}' no existe en el DataFrame.")
+        return None
+
+    if not pd.api.types.is_numeric_dtype(dataframe[target_col]):
+        print("Error: La columna objetivo debe ser numérica.")
+        return None
+
+    if columns is None:
+        columns = dataframe.select_dtypes(include=['number']).columns.tolist()
+        columns.remove(target_col)
+
+    if not columns:
+        print("Error: No hay columnas numéricas para analizar.")
+        return None
+
+    filtered_columns = []
+    for col in columns:
+        if col in dataframe.columns:
+            correlacion, p_valor = pearsonr(
+                dataframe[col].dropna(), dataframe[target_col].dropna())
+            if abs(correlacion) >= umbral_corr:
+                if pvalue is None or p_valor < (1 - pvalue):
+                    filtered_columns.append(col)
+
+    if not filtered_columns:
+        print("No hay columnas que cumplan con los criterios dados.")
+        return None
+
+    # Generar pairplot con seaborn
+    max_columns = 5
+    for i in range(0, len(filtered_columns), max_columns):
+        subset = filtered_columns[i:i + max_columns] + [target_col]
+        sns.pairplot(dataframe[subset])
+        plt.show()
+
+    return filtered_columns
+
+# 4.
 def plot_features_num_regression(dataframe, target_col, columns=None, umbral_corr=0, pvalue=None):
 
     # Genera pairplots para analizar la correlación entre una columna objetivo y otras columnas numéricas.
@@ -124,5 +179,117 @@ def plot_features_num_regression(dataframe, target_col, columns=None, umbral_cor
         subset = filtered_columns[i:i + max_columns] + [target_col]
         sns.pairplot(dataframe[subset])
         plt.show()
+
+    return filtered_columns
+
+# 5.
+def get_features_cat_regression(dataframe, target_col, pvalue=0.05):
+
+    # Filtra columnas categóricas de un DataFrame basándose en su relación estadística con una columna objetivo numérica.
+
+    # Argumentos:
+    # dataframe (pd.DataFrame): DataFrame de entrada.
+    # target_col (str): Nombre de la columna objetivo (debe ser numérica continua o discreta con alta cardinalidad).
+    # pvalue (float, opcional): Umbral de significancia estadística (default = 0.05).
+
+    # Retorna:
+    # list: Lista de columnas categóricas que cumplen con los criterios.
+    # None: Si hay un error en los argumentos de entrada.
+
+    # Validación de entrada
+    if target_col not in dataframe.columns:
+        print(f"Error: La columna objetivo '{
+            target_col}' no existe en el DataFrame.")
+        return None
+
+    if not pd.api.types.is_numeric_dtype(dataframe[target_col]):
+        print("Error: La columna objetivo debe ser numérica.")
+        return None
+
+    if not (0 <= pvalue <= 1):
+        print("Error: El p-valor debe estar entre 0 y 1.")
+        return None
+
+    # Filtrar columnas categóricas
+    columnas_categoricas = dataframe.select_dtypes(
+        include=['object', 'category']).columns
+
+    resultado = []
+
+    for col in columnas_categoricas:
+        if col in dataframe.columns:
+            grupos = [dataframe[target_col][dataframe[col] == valor].dropna()
+                      for valor in dataframe[col].unique()]
+            if len(grupos) > 1:
+                estadistico, p_valor = f_oneway(*grupos)
+                if p_valor < pvalue:
+                    resultado.append(col)
+
+    return resultado
+
+
+# 6.
+def plot_features_cat_regression(dataframe, target_col, columns=None, pvalue=0.05, with_individual_plot=False):
+
+    # Genera gráficos de histogramas agrupados para analizar la relación entre variables categóricas y una columna objetivo numérica.
+
+    # Argumentos:
+    # dataframe (pd.DataFrame): DataFrame de entrada.
+    # target_col (str): Columna objetivo para analizar la relación.
+    # columns (list, opcional): Lista de columnas categóricas para incluir en el análisis. Si es None, se seleccionan todas las categóricas.
+    # pvalue (float, opcional): Umbral de significancia estadística (default = 0.05).
+    # with_individual_plot (bool, opcional): Si es True, genera gráficos individuales para cada columna.
+
+    # Retorna:
+    # list: Lista de columnas que cumplen con los criterios y fueron incluidas en los gráficos.
+
+    # Validación de entrada
+    if target_col not in dataframe.columns:
+        print(f"Error: La columna objetivo '{
+              target_col}' no existe en el DataFrame.")
+        return None
+
+    if not pd.api.types.is_numeric_dtype(dataframe[target_col]):
+        print("Error: La columna objetivo debe ser numérica.")
+        return None
+
+    if columns is None:
+        columns = dataframe.select_dtypes(
+            include=['object', 'category']).columns.tolist()
+
+    if not columns:
+        print("Error: No hay columnas categóricas para analizar.")
+        return None
+
+    filtered_columns = []
+    for col in columns:
+        if col in dataframe.columns:
+            grupos = [dataframe[target_col][dataframe[col] == valor].dropna()
+                      for valor in dataframe[col].unique()]
+            if len(grupos) > 1:
+                estadistico, p_valor = f_oneway(*grupos)
+                if p_valor < pvalue:
+                    filtered_columns.append(col)
+
+    if not filtered_columns:
+        print("No hay columnas que cumplan con los criterios dados.")
+        return None
+
+    # Generar gráficos
+    for col in filtered_columns:
+        if with_individual_plot:
+            plt.figure(figsize=(10, 6))
+            sns.boxplot(x=dataframe[col], y=dataframe[target_col])
+            plt.title(f"Relación entre {col} y {target_col}")
+            plt.xticks(rotation=45)
+            plt.show()
+
+        else:
+            plt.figure(figsize=(10, 6))
+            sns.histplot(data=dataframe, x=target_col, hue=col,
+                         kde=True, element="step", stat="density")
+            plt.title(f"Distribución de {target_col} por {col}")
+            plt.xticks(rotation=45)
+            plt.show()
 
     return filtered_columns
