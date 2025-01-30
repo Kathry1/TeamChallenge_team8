@@ -229,67 +229,70 @@ def get_features_cat_regression(dataframe, target_col, pvalue=0.05):
 
 
 # 6.
-def plot_features_cat_regression(dataframe, target_col, columns=None, pvalue=0.05, with_individual_plot=False):
+def plot_features_cat_regression(dataframe, target_col, columns=None, pvalue=0.05, fill_na="Missing", with_individual_plot=False):
+    """
+    Analiza la relación entre variables categóricas y una variable target numérica.
+    
+    Args:
+        dataframe (pd.DataFrame): DataFrame de entrada.
+        target_col (str): Columna objetivo numérica.
+        columns (list, optional): Columnas categóricas a analizar. Si es None, se seleccionan todas automáticamente.
+        pvalue (float, optional): Umbral de significancia estadística para ANOVA (0.05 por defecto).
+        fill_na (str, optional): Valor para reemplazar nulos en categóricas ("Missing" por defecto).
+        with_individual_plot (bool, optional): Genera gráficos individuales si es True (False por defecto).
 
-    # Genera gráficos de histogramas agrupados para analizar la relación entre variables categóricas y una columna objetivo numérica.
+    Returns:
+        selected_columns: Lista de columnas categóricas seleccionadas basadas en el análisis.
+    """
 
-    # Argumentos:
-    # dataframe (pd.DataFrame): DataFrame de entrada.
-    # target_col (str): Columna objetivo para analizar la relación.
-    # columns (list, opcional): Lista de columnas categóricas para incluir en el análisis. Si es None, se seleccionan todas las categóricas.
-    # pvalue (float, opcional): Umbral de significancia estadística (default = 0.05).
-    # with_individual_plot (bool, opcional): Si es True, genera gráficos individuales para cada columna.
-
-    # Retorna:
-    # list: Lista de columnas que cumplen con los criterios y fueron incluidas en los gráficos.
-
-    # Validación de entrada
+    # Validaciones iniciales de la columna target
     if target_col not in dataframe.columns:
-        print(f"Error: La columna objetivo '{
-              target_col}' no existe en el DataFrame.")
-        return None
-
+        raise ValueError(f"La columna objetivo '{target_col}' no existe en el DataFrame.")
     if not pd.api.types.is_numeric_dtype(dataframe[target_col]):
-        print("Error: La columna objetivo debe ser numérica.")
-        return None
+        raise TypeError("La columna objetivo debe ser numérica.")
 
+    # Selección automática de columnas categóricas si no se especifican
     if columns is None:
-        columns = dataframe.select_dtypes(
-            include=['object', 'category']).columns.tolist()
+        columns = dataframe.select_dtypes(include=["object", "category"]).columns.tolist()
 
     if not columns:
-        print("Error: No hay columnas categóricas para analizar.")
-        return None
+        print("No hay columnas categóricas disponibles para analizar.")
+        return []
 
-    filtered_columns = []
+    # Rellenar valores nulos con 'fill_na' en columnas categóricas
+    dataframe = dataframe.copy()
+    dataframe[columns] = dataframe[columns].fillna(fill_na)
+
+    # Filtrar columnas significativas
+    selected_columns = []
     for col in columns:
-        if col in dataframe.columns:
-            grupos = [dataframe[target_col][dataframe[col] == valor].dropna()
-                      for valor in dataframe[col].unique()]
-            if len(grupos) > 1:
-                estadistico, p_valor = f_oneway(*grupos)
-                if p_valor < pvalue:
-                    filtered_columns.append(col)
+        unique_vals = dataframe[col].nunique()
+        if unique_vals < 2:
+            print(f"La columna '{col}' tiene menos de 2 categorías únicas. Ignorada.")
+            continue
+        
+        # Se calcula el p_value de cada categórica frente al target para seleccionarla o dsecartarla
+        grupos = [dataframe[target_col][dataframe[col] == valor].dropna() for valor in dataframe[col].unique()]
+        if len(grupos) > 1:
+            _, p_valor = f_oneway(*grupos)
+            if p_valor < pvalue:
+                selected_columns.append(col)
 
-    if not filtered_columns:
-        print("No hay columnas que cumplan con los criterios dados.")
-        return None
+    if not selected_columns:
+        print("No hay columnas categóricas que cumplan con el criterio de significancia.")
+        return []
 
-    # Generar gráficos
-    for col in filtered_columns:
+    # Generación de gráficos
+    for col in selected_columns:
+        plt.figure(figsize=(10, 6))
         if with_individual_plot:
-            plt.figure(figsize=(10, 6))
             sns.boxplot(x=dataframe[col], y=dataframe[target_col])
-            plt.title(f"Relación entre {col} y {target_col}")
-            plt.xticks(rotation=45)
-            plt.show()
-
+            plt.title(f"Relación entre '{col}' y '{target_col}' (Boxplot)")
         else:
-            plt.figure(figsize=(10, 6))
-            sns.histplot(data=dataframe, x=target_col, hue=col,
-                         kde=True, element="step", stat="density")
-            plt.title(f"Distribución de {target_col} por {col}")
-            plt.xticks(rotation=45)
-            plt.show()
+            sns.histplot(data=dataframe, x=target_col, hue=col, kde=True, element="step", stat="density")
+            plt.title(f"Distribución de '{target_col}' por '{col}'")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()
 
-    return filtered_columns
+    return selected_columns
