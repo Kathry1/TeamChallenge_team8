@@ -279,7 +279,7 @@ def plot_features_cat_regression(dataframe, target_col, columns=None, pvalue=0.0
                 selected_columns.append(col)
 
     if not selected_columns:
-        print("No hay columnas categóricas que cumplan con el criterio de significancia.")
+        print("No hay columnas categóricas que cumplan con el criterio de selección.")
         return []
 
     # Generación de gráficos
