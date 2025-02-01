@@ -118,13 +118,6 @@ def get_features_num_regression(dataframe, target_col, columns=None, umbral_corr
         print("No hay columnas que cumplan con los criterios dados.")
         return None
 
-    # Generar pairplot con seaborn
-    max_columns = 5
-    for i in range(0, len(filtered_columns), max_columns):
-        subset = filtered_columns[i:i + max_columns] + [target_col]
-        sns.pairplot(dataframe[subset])
-        plt.show()
-
     return filtered_columns
 
 # 4.
